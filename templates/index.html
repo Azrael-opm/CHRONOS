@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHRONOS // Temporal Engine</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4.8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+</head>
+<body>
+
+<div id="hover-tip" class="hover-tip"></div>
+
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div class="loading-center">
+    <!-- Orbit rings behind the clock -->
+    <div class="holo-ring loading-ring" style="width:280px;height:280px;margin-top:-140px;margin-left:-140px;animation-delay:0s;opacity:0.12;"></div>
+    <div class="holo-ring loading-ring" style="width:240px;height:240px;margin-top:-120px;margin-left:-120px;animation-delay:0.4s;opacity:0.4;"></div>
+    <div class="holo-ring loading-ring" style="width:200px;height:200px;margin-top:-100px;margin-left:-100px;animation-delay:0.8s;opacity:0.2;"></div>
+
+    <!-- Loading Screen Centerpiece Analog Clock -->
+    <div class="loading-clock-wrap">
+      <svg viewBox="0 0 120 120" class="loading-clock-svg">
+        <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(0,240,255,0.12)" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(0,240,255,0.06)" stroke-width="0.5"/>
+        <g stroke="rgba(0,240,255,0.3)" stroke-width="1.5">
+          <line x1="60" y1="14" x2="60" y2="20"/><line x1="60" y1="100" x2="60" y2="106"/>
+          <line x1="14" y1="60" x2="20" y2="60"/><line x1="100" y1="60" x2="106" y2="60"/>
+          <line x1="25" y1="25" x2="29" y2="29"/><line x1="91" y1="91" x2="95" y2="95"/>
+          <line x1="91" y1="29" x2="95" y2="25"/><line x1="25" y1="91" x2="29" y2="95"/>
+        </g>
+        <line id="loading-h-hand" x1="60" y1="60" x2="60" y2="32" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" style="filter:drop-shadow(0 0 4px var(--accent-dim));transform-origin:60px 60px;"/>
+        <line id="loading-m-hand" x1="60" y1="60" x2="60" y2="22" stroke="rgba(0,240,255,0.6)" stroke-width="1.5" stroke-linecap="round" style="transform-origin:60px 60px;"/>
+        <line id="loading-s-hand" x1="60" y1="60" x2="60" y2="18" stroke="var(--accent-dim)" stroke-width="1" stroke-linecap="round" style="transform-origin:60px 60px;"/>
+        <circle cx="60" cy="60" r="2.5" fill="var(--accent)" style="filter:drop-shadow(0 0 4px var(--accent-dim));"/>
+      </svg>
+    </div>
+
+    <div class="loading-word">CHRONOS</div>
+    <div class="loading-sub">TEMPORAL COMPRESSION ENGINE v4.0</div>
+    <div class="loading-bar"><div class="loading-fill"></div></div>
+  </div>
+</div>
+
+<!-- Background HUD Elements -->
+<div class="holo-bg">
+  <div class="grid-overlay"></div>
+  <div class="radial-glow"></div>
+  <div class="scan-line"></div>
+</div>
+
+<!-- App Container -->
+<div class="app-container" id="app">
+
+  <!-- Header HUD -->
+  <header class="holo-header">
+    <div class="header-left">
+      <div class="logo-mark">
+        <svg viewBox="0 0 40 40" class="logo-clock-svg">
+          <circle cx="20" cy="20" r="18" fill="none" stroke="rgba(0,240,255,0.25)" stroke-width="1"/>
+          <g stroke="rgba(0,240,255,0.4)" stroke-width="1.2">
+            <line x1="20" y1="4" x2="20" y2="7"/><line x1="20" y1="33" x2="20" y2="36"/>
+            <line x1="4" y1="20" x2="7" y2="20"/><line x1="33" y1="20" x2="36" y2="20"/>
+          </g>
+          <line id="logo-h-hand" x1="20" y1="20" x2="20" y2="12" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" style="transform-origin:20px 20px;"/>
+          <line id="logo-m-hand" x1="20" y1="20" x2="20" y2="8" stroke="rgba(0,240,255,0.7)" stroke-width="1" stroke-linecap="round" style="transform-origin:20px 20px;"/>
+          <line id="logo-s-hand" x1="20" y1="20" x2="20" y2="7" stroke="var(--accent-dim)" stroke-width="0.5" stroke-linecap="round" style="transform-origin:20px 20px;"/>
+          <circle cx="20" cy="20" r="1.5" fill="var(--accent)" style="filter:drop-shadow(0 0 2px var(--accent-dim));"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-title">CHRONOS</span>
+        <span class="logo-sub">Temporal Video Engine</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="platform-toggle" id="platform-toggle">
+        <div class="toggle-bg"></div>
+        <div class="toggle-pill" id="toggle-pill"></div>
+        <button class="platform-btn active" data-platform="tiktok">TIKTOK</button>
+        <button class="platform-btn" data-platform="whatsapp">WHATSAPP</button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="holo-clock-digital" id="holo-clock">00:00:00</div>
+      <div class="sys-status online">
+        <span class="status-pip"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main HUD Grid -->
+  <main class="holo-grid">
+
+    <!-- Left Panel: Input / Stream Analysis -->
+    <section class="holo-panel panel-left" id="panel-left">
+      <div class="panel-frame">
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+      </div>
+      <div class="panel-header">
+        <span class="panel-id">01</span>
+        <span class="panel-label">Input Stream</span>
+        <div class="panel-line"></div>
+      </div>
+
+      <div class="input-visual" id="no-file-visual">
+        <div class="holo-placeholder">
+          <svg viewBox="0 0 64 64" class="placeholder-icon"><rect x="8" y="12" width="48" height="40" rx="4" fill="none" stroke="rgba(0,240,255,0.2)" stroke-width="1"/><circle cx="26" cy="28" r="4" fill="none" stroke="rgba(0,240,255,0.3)" stroke-width="1"/><polyline points="8,44 20,32 28,40 36,28 56,48" fill="none" stroke="rgba(0,240,255,0.2)" stroke-width="1"/></svg>
+          <div class="placeholder-text">Awaiting Stream</div>
+          <div class="placeholder-sub">Drop video or click to browse</div>
+        </div>
+      </div>
+
+      <div class="input-visual" id="file-visual" style="display:none">
+        <div class="thumb-wrap">
+          <img id="thumb-img" src="" alt="">
+          <div class="thumb-overlay">
+            <div class="thumb-badge" id="thumb-badge">MP4</div>
+          </div>
+        </div>
+        <div class="meta-grid">
+          <div class="meta-cell"><div class="meta-val" id="m-res">—</div><div class="meta-key">Resolution</div></div>
+          <div class="meta-cell"><div class="meta-val" id="m-dur">—</div><div class="meta-key">Duration</div></div>
+          <div class="meta-cell"><div class="meta-val" id="m-fps">—</div><div class="meta-key">FPS</div></div>
+          <div class="meta-cell"><div class="meta-val" id="m-codec">—</div><div class="meta-key">Codec</div></div>
+        </div>
+        <div class="meta-grid second">
+          <div class="meta-cell"><div class="meta-val" id="m-format">—</div><div class="meta-key">Format</div></div>
+          <div class="meta-cell"><div class="meta-val" id="m-frames">—</div><div class="meta-key">Frames</div></div>
+          <div class="meta-cell"><div class="meta-val" id="m-pix">—</div><div class="meta-key">Pixel</div></div>
+          <div class="meta-cell"><div class="meta-val" id="m-audio">—</div><div class="meta-key">Audio</div></div>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">File</span>
+          <span class="meta-val filename" id="m-name">—</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Size</span>
+          <span class="meta-val" id="m-size">—</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Bitrate</span>
+          <span class="meta-val" id="m-bitrate">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Center Panel: Core / Processing -->
+    <section class="holo-panel panel-center" id="panel-center">
+      <div class="panel-frame">
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+      </div>
+      <div class="panel-header">
+        <span class="panel-id">02</span>
+        <span class="panel-label" id="core-label">Processing Core</span>
+        <div class="panel-line"></div>
+      </div>
+
+      <!-- Upload View -->
+      <div id="upload-view" class="core-view active">
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-aura"></div>
+          <div class="drop-hex">
+            <svg viewBox="0 0 120 120" class="hex-svg">
+              <polygon points="60,10 110,35 110,85 60,110 10,85 10,35" fill="none" stroke="rgba(0,240,255,0.15)" stroke-width="1"/>
+              <polygon points="60,25 95,42 95,78 60,95 25,78 25,42" fill="none" stroke="rgba(0,240,255,0.08)" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="drop-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="1.5"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+          </div>
+          <div class="drop-text">Initialize Upload</div>
+          <div class="drop-hint">Drop video or click to select</div>
+          <input type="file" id="file-input" accept="video/*" multiple style="display:none">
+        </div>
+
+        <div class="upload-progress" id="upload-progress" style="display:none">
+          <div class="upload-track">
+            <div class="upload-fill" id="upload-fill"></div>
+          </div>
+          <div class="upload-meta" id="upload-meta">Ingesting stream...</div>
+        </div>
+
+        <div class="preset-strip" id="preset-strip">
+          <div class="preset-track" id="preset-track">
+            <button class="holo-preset active" data-preset="tiktok">TikTok Studio</button>
+            <button class="holo-preset" data-preset="optimal">Quality First</button>
+            <button class="holo-preset" data-preset="reddit">4K Lanczos</button>
+            <button class="holo-preset" data-preset="compat">Max Compatibility</button>
+            <button class="holo-preset" data-preset="ksaevelo">KSAEVELO</button>
+            <button class="holo-preset wa-preset" data-preset="wa_status" style="display:none">Status 720p</button>
+            <button class="holo-preset wa-preset" data-preset="wa_status_hd" style="display:none">Status HD</button>
+            <button class="holo-preset wa-preset" data-preset="wa_chat" style="display:none">Chat Send</button>
+          </div>
+        </div>
+
+        <div class="queue-area" id="queue-area" style="display:none">
+          <div class="queue-header">Queue</div>
+          <div class="queue-list" id="queue-list"></div>
+          <button class="holo-btn secondary" id="process-queue-btn">Process Queue</button>
+        </div>
+      </div>
+
+      <!-- Process View -->
+      <div id="process-view" class="core-view">
+        <div class="holo-progress">
+          <svg viewBox="0 0 200 200" class="progress-svg">
+            <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3"/>
+            <circle id="progress-ring" cx="100" cy="100" r="90" fill="none" stroke="#00f0ff" stroke-width="3" stroke-linecap="round" stroke-dasharray="565.5" stroke-dashoffset="565.5" style="filter:drop-shadow(0 0 6px #00f0ff);"/>
+          </svg>
+          <div class="progress-core">
+            <div class="progress-pct" id="progress-text">0<span class="pct-sym">%</span></div>
+            <div class="progress-label" id="status-label">Encoding</div>
+          </div>
+        </div>
+        <div class="timer-hud">
+          <div class="timer-cell">
+            <div class="timer-val" id="timer-elapsed">00:00</div>
+            <div class="timer-key">Elapsed</div>
+          </div>
+          <div class="timer-divider"></div>
+          <div class="timer-cell">
+            <div class="timer-val" id="timer-est">—</div>
+            <div class="timer-key">Estimated</div>
+          </div>
+        </div>
+        <div class="control-bar">
+          <button class="holo-btn control-btn" id="pause-btn">Pause</button>
+          <button class="holo-btn control-btn danger" id="stop-btn">Abort</button>
+        </div>
+      </div>
+
+      <!-- Complete View -->
+      <div id="complete-view" class="core-view">
+        <div class="complete-badge">
+          <svg viewBox="0 0 48 48" width="48" height="48"><circle cx="24" cy="24" r="22" fill="none" stroke="#00f0ff" stroke-width="1.5"/><polyline points="14,24 22,32 34,18" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="complete-title">Stream Complete</div>
+        <div class="complete-stat" id="reduction-val">—</div>
+
+        <div class="comparison-panel" id="comparison-panel">
+          <div class="comp-header">Stream Analysis</div>
+          <div class="comp-grid" id="comp-grid"></div>
+        </div>
+
+        <div class="segment-strip" id="segment-strip" style="display:none"></div>
+
+        <div class="action-row">
+          <a href="#" id="download-link" class="holo-btn primary">Download</a>
+          <button class="holo-btn secondary" id="wa-send-btn" style="display:none">Send to WhatsApp</button>
+        </div>
+        <div id="wa-send-status" class="wa-status"></div>
+
+        <div class="action-row secondary">
+          <button class="holo-btn tertiary" id="retry-btn">Retry</button>
+          <button class="holo-btn tertiary" id="delete-btn">Delete</button>
+          <button class="holo-btn tertiary" id="reset-btn">New File</button>
+        </div>
+
+        <div class="cmd-panel" id="cmd-panel">
+          <div class="cmd-header">
+            <span>FFmpeg Command</span>
+            <button class="holo-btn tiny" id="copy-cmd-btn">Copy</button>
+          </div>
+          <pre id="ffmpeg-cmd"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel: Config -->
+    <section class="holo-panel panel-right" id="panel-right">
+      <div class="panel-frame">
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+      </div>
+      <div class="panel-header">
+        <span class="panel-id">03</span>
+        <span class="panel-label">Parameters</span>
+        <div class="panel-line"></div>
+      </div>
+
+      <div class="config-scroll">
+        <button class="holo-btn smart" id="smart-btn" disabled>Smart Recommend</button>
+        <div id="smart-banner" class="smart-banner" style="display:none">
+          <div class="smart-title" id="smart-title">Auto</div>
+          <div class="smart-reasons" id="smart-reasons"></div>
+        </div>
+
+        <!-- WhatsApp Phone -->
+        <div class="config-group" id="wa-group" style="display:none">
+          <div class="group-label">Destination</div>
+          <div class="holo-input-wrap">
+            <input type="text" id="wa-phone" class="holo-input" placeholder="+1 234 567 8900" data-desc="WhatsApp number with country code for auto-send. Bridge must be running (node wa-bridge.js).">
+            <div class="input-glow"></div>
+          </div>
+          <div class="group-sublabel">WhatsApp number with country code</div>
+          <div class="wa-bridge-dot" id="wa-bridge-dot">Bridge offline</div>
+          <div class="segmented mini">
+            <input type="radio" name="wa_mode" id="wa-mode-status" value="status" checked><label for="wa-mode-status" data-desc="Auto-splits into 30-second segments for WhatsApp Status. Each segment is individually optimized.">Status</label>
+            <input type="radio" name="wa_mode" id="wa-mode-chat" value="chat"><label for="wa-mode-chat" data-desc="Single optimized file for direct WhatsApp chat message. No splitting.">Chat</label>
+          </div>
+        </div>
+
+        <!-- Resolution -->
+        <div class="config-group">
+          <div class="group-label">Resolution</div>
+          <div class="segmented">
+            <input type="radio" name="res" id="res-1080" value="1080p" checked><label for="res-1080" data-desc="TikTok's native maximum. Full HD. Best quality, largest file size.">1080p</label>
+            <input type="radio" name="res" id="res-720" value="720p"><label for="res-720" data-desc="HD. Good balance between visual quality and file size.">720p</label>
+            <input type="radio" name="res" id="res-480" value="480p"><label for="res-480" data-desc="SD. Use only for very small file sizes or slow connections.">480p</label>
+          </div>
+        </div>
+
+        <!-- FPS -->
+        <div class="config-group">
+          <div class="group-label">Frame Rate</div>
+          <div class="holo-slider-wrap" data-desc="Match your source FPS. 30 is universal. 60 is buttery smooth. TikTok discards anything above 60.">
+            <input type="range" id="fps-slider" min="1" max="120" value="60" step="1">
+            <div class="slider-track"></div>
+          </div>
+          <div class="slider-meta">
+            <input type="number" id="fps-input" class="holo-input mini" value="60" min="1" max="120" data-desc="Exact frame rate value. Matching source avoids duplicated or dropped frames.">
+            <span class="unit">FPS</span>
+          </div>
+        </div>
+
+        <!-- Aspect -->
+        <div class="config-group">
+          <div class="group-label">Aspect</div>
+          <div class="segmented">
+            <input type="radio" name="aspect" id="asp-tiktok" value="tiktok" checked><label for="asp-tiktok" data-desc="Vertical 9:16. Fills the entire mobile screen. Best for TikTok and WhatsApp Status.">9:16</label>
+            <input type="radio" name="aspect" id="asp-orig" value="original"><label for="asp-orig" data-desc="Preserve original framing. No cropping, no padding, no letterboxing.">Original</label>
+          </div>
+        </div>
+
+        <!-- Codec -->
+        <div class="config-group">
+          <div class="group-label">Codec</div>
+          <div class="segmented">
+            <input type="radio" name="codec" id="codec-h264" value="h264" checked><label for="codec-h264" data-desc="Universal gold standard. TikTok and WhatsApp pass it through without re-encoding.">H.264</label>
+            <input type="radio" name="codec" id="codec-hevc" value="hevc"><label for="codec-hevc" data-desc="H.265. ~40% smaller at same quality, but platforms may re-encode and add generational loss.">H.265</label>
+            <input type="radio" name="codec" id="codec-vp9" value="vp9"><label for="codec-vp9" data-desc="Web-optimized. Slower to encode. Not ideal for TikTok or mobile playback.">VP9</label>
+            <input type="radio" name="codec" id="codec-av1" value="av1"><label for="codec-av1" data-desc="Next-generation efficiency. Very slow encode. Limited platform support right now.">AV1</label>
+          </div>
+        </div>
+
+        <!-- Hardware -->
+        <div class="config-group" id="hw-group">
+          <div class="group-label">Encoder</div>
+          <div class="segmented engine">
+            <input type="radio" name="hw_accel" id="hw-none" value="none" checked><label for="hw-none" data-desc="CPU software encoding. Highest quality per bit. Slower but visually the best.">CPU</label>
+            <input type="radio" name="hw_accel" id="hw-nvenc" value="nvenc"><label for="hw-nvenc" data-desc="NVIDIA GPU encode. Much faster. Visual quality depends on driver and GPU generation."><span class="dot" id="dot-nvenc"></span>NVENC</label>
+            <input type="radio" name="hw_accel" id="hw-qsv" value="qsv"><label for="hw-qsv" data-desc="Intel QuickSync. Fast encoding via integrated GPU. Good for quick drafts."><span class="dot" id="dot-qsv"></span>QSV</label>
+            <input type="radio" name="hw_accel" id="hw-amf" value="amf"><label for="hw-amf" data-desc="AMD GPU encode. Fast. Quality varies significantly by card model."><span class="dot" id="dot-amf"></span>AMF</label>
+          </div>
+        </div>
+
+        <!-- Container -->
+        <div class="config-group">
+          <div class="group-label">Container</div>
+          <div class="segmented mini">
+            <input type="radio" name="container" id="cont-mp4" value="mp4" checked><label for="cont-mp4" data-desc="Universal standard. MP4 works on every device and platform.">MP4</label>
+            <input type="radio" name="container" id="cont-mov" value="mov"><label for="cont-mov" data-desc="Apple-optimized. Best for Final Cut, iOS, and macOS workflows.">MOV</label>
+            <input type="radio" name="container" id="cont-webm" value="webm"><label for="cont-webm" data-desc="Browser-native. For web playback, not recommended for TikTok upload.">WebM</label>
+          </div>
+        </div>
+
+        <!-- Strategy -->
+        <div class="config-group">
+          <div class="group-label">Mode</div>
+          <div class="segmented">
+            <input type="radio" name="strategy" id="strat-crf" value="crf" checked><label for="strat-crf" data-desc="Quality-first CRF mode. Preserves visual fidelity regardless of final file size. Best for TikTok.">Quality</label>
+            <input type="radio" name="strategy" id="strat-vbr" value="vbr"><label for="strat-vbr" data-desc="Size-first VBR mode. Targets a specific bitrate. May sacrifice quality to hit the target.">Size</label>
+          </div>
+        </div>
+
+        <!-- CRF -->
+        <div class="config-group" id="crf-group">
+          <div class="group-label">Quality Level</div>
+          <div class="holo-slider-wrap" data-desc="CRF value. Lower = higher quality. 18 is visually lossless. 23 is standard web. 28 is heavily compressed.">
+            <input type="range" id="crf-slider" min="14" max="28" value="18" step="1">
+            <div class="slider-track"></div>
+          </div>
+          <div class="slider-meta">
+            <input type="number" id="crf-input" class="holo-input mini" value="18" min="14" max="28" data-desc="Exact CRF value. 18 is the sweet spot for visually lossless TikTok uploads.">
+            <span class="quality-label" id="crf-label">Visually Lossless</span>
+          </div>
+        </div>
+
+        <!-- VBR -->
+        <div class="config-group" id="vbr-group" style="display:none">
+          <div class="group-label">Target Bitrate</div>
+          <div class="holo-slider-wrap" data-desc="Video bitrate in kbps. Higher = more detail. 8 000+ for 1080p. 4 000+ for 720p. Below that, quality degrades.">
+            <input type="range" id="vbr-slider" min="500" max="25000" value="12000" step="100">
+            <div class="slider-track"></div>
+          </div>
+          <div class="slider-meta">
+            <input type="number" id="vbr-input" class="holo-input mini" value="12000" min="500" max="25000" data-desc="Exact video bitrate in kilobits per second. CHRONOS enforces a quality floor based on resolution.">
+            <span class="unit">kbps</span>
+          </div>
+          <div class="toggle-wrap" id="two-pass-wrap" style="display:none">
+            <label class="holo-toggle" data-desc="Two-pass VBR analyzes the entire video first, then distributes bits optimally in the second pass. More accurate size targeting.">
+              <input type="checkbox" id="chk-two-pass">
+              <span class="toggle-pill"></span>
+              <span class="toggle-text">Two-Pass VBR</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Target Size Calculator (TikTok only) -->
+        <div class="config-group" id="target-size-group">
+          <div class="group-label">Target Size</div>
+          <div class="size-calc">
+            <div class="holo-input-wrap">
+              <input type="number" id="target-size" class="holo-input" placeholder="MB" min="1" max="500" data-desc="Enter a target file size in MB. CHRONOS will calculate bitrate but clamps to a quality floor to prevent destruction.">
+              <div class="input-glow"></div>
+            </div>
+            <button class="holo-btn tiny" id="target-size-btn" data-desc="Apply the target size. Forces VBR mode. Will warn if the target is too aggressive for the selected resolution.">Apply</button>
+          </div>
+          <div class="est-line" id="est-size-display"></div>
+          <div class="est-line" id="target-size-warning" style="color:var(--danger);margin-top:6px;font-weight:600;"></div>
+        </div>
+
+        <!-- Preset -->
+        <div class="config-group">
+          <div class="group-label">Speed</div>
+          <div class="segmented">
+            <input type="radio" name="enc_preset" id="ep-medium" value="medium"><label for="ep-medium" data-desc="Fast preset. Quick encode, slightly larger file. Good for drafts and testing.">Fast</label>
+            <input type="radio" name="enc_preset" id="ep-slow" value="slow" checked><label for="ep-slow" data-desc="Balanced preset. Better quality per bit. Recommended for final delivery to TikTok.">Balanced</label>
+            <input type="radio" name="enc_preset" id="ep-veryslow" value="veryslow"><label for="ep-veryslow" data-desc="Best preset. Maximum compression efficiency. Longest encode time, smallest file.">Best</label>
+          </div>
+        </div>
+
+        <!-- Scale -->
+        <div class="config-group">
+          <div class="group-label">Scale</div>
+          <div class="segmented mini">
+            <input type="radio" name="scale_filter" id="sf-bicubic" value="bicubic" checked><label for="sf-bicubic" data-desc="Bicubic scaling. Softer and faster. Good for smooth video content and motion.">Bicubic</label>
+            <input type="radio" name="scale_filter" id="sf-lanczos" value="lanczos"><label for="sf-lanczos" data-desc="Lanczos scaling. Sharper and more detailed. Best for 4K downscales and text.">Lanczos</label>
+          </div>
+        </div>
+
+        <!-- Audio -->
+        <div class="config-group">
+          <div class="group-label">Audio</div>
+          <div class="segmented mini">
+            <input type="radio" name="audio_mode" id="aud-lossy" value="lossy" checked><label for="aud-lossy" data-desc="AAC lossy compression. 192 kbps is transparent for most music and speech.">Lossy</label>
+            <input type="radio" name="audio_mode" id="aud-lossless" value="lossless"><label for="aud-lossless" data-desc="ALAC/FLAC lossless. Perfect audio quality preservation. Significantly larger file.">Lossless</label>
+          </div>
+          <div class="holo-slider-wrap" id="audio-slider-wrap" data-desc="Audio bitrate for lossy AAC. 128 kbps is standard. 192 kbps is high quality. 320 kbps is near-lossless.">
+            <input type="range" id="audio-bitrate" min="64" max="1411" value="192" step="1">
+            <div class="slider-track"></div>
+          </div>
+          <div class="slider-meta" id="audio-meta">
+            <input type="number" id="audio-input" class="holo-input mini" value="192" min="64" max="1411" data-desc="Exact audio bitrate in kbps. Only applies when Lossy mode is selected.">
+            <span class="unit">kbps</span>
+          </div>
+        </div>
+
+        <!-- Toggles -->
+        <div class="config-group row">
+          <label class="holo-toggle" data-desc="HEVC intermediate: two-stage H.265 → H.264 pipeline. Preserves color grade through filter chains. Slower but cleaner.">
+            <input type="checkbox" id="chk-hevc-int">
+            <span class="toggle-pill"></span>
+            <span class="toggle-text">HEVC Int</span>
+          </label>
+          <label class="holo-toggle" data-desc="BT.709: force Rec.709 color space tagging. Prevents color shifts and gamma changes on mobile devices and TikTok.">
+            <input type="checkbox" id="chk-color">
+            <span class="toggle-pill"></span>
+            <span class="toggle-text">BT.709</span>
+          </label>
+        </div>
+
+        <!-- Time Estimate -->
+        <div class="config-group" id="time-estimate-block" style="display:none">
+          <div class="group-label">Estimate</div>
+          <div class="est-block" data-desc="Projected encode time based on source duration, resolution, codec, and speed preset. Includes overhead for WhatsApp segment splitting.">
+            <div class="est-val" id="time-est">—</div>
+            <div class="est-label">Projected encode time</div>
+          </div>
+          <div class="alt-list" id="faster-alts"></div>
+        </div>
+
+        <button class="holo-btn primary" id="process-btn" disabled>Initiate</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Terminal / Footer -->
+  <footer class="holo-footer">
+    <div class="terminal-wrap">
+      <div class="terminal-toggle" id="term-toggle">Terminal</div>
+      <div class="terminal" id="terminal">
+        <span class="t-line">[CHRONOS] System online. Awaiting video stream.</span>
+      </div>
+    </div>
+    <div class="footer-specs">
+      H.264 HIGH • AAC / ALAC / OPUS • MP4 / MOV / WEBM • yuv420p • BT.709
+    </div>
+  </footer>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}?v=4.8"></script>
+</body>
+</html>
