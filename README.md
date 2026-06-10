@@ -1,68 +1,89 @@
-# J.A.R.V.I.S. TikTok Video Optimizer
+# CHRONOS // Temporal Video Engine v4.0
 
-A monochrome, Iron Man-inspired web app that compresses and optimizes videos for flawless TikTok uploads.
+> *Compress. Optimize. Upload. Zero compromise.*
 
-## Features
+Holographic HUD video compressor for **TikTok** and **WhatsApp**. H.264/H.265/VP9/AV1. CRF, VBR, two-pass, hardware accel auto-detect. Smart Recommend. Batch queue. WhatsApp Status auto-split. WhatsApp Web bridge optional.
 
-| Feature | Detail |
-|---------|--------|
-| **Resolutions** | 1080p (1080×1920 vertical) or 720p (720×1280 vertical) |
-| **Framerate** | Adjustable 1–120 FPS |
-| **Quality** | CRF 18 (visually lossless) by default |
-| **TikTok Ready** | H.264 High Profile, AAC audio, MP4 container, `+faststart`, yuv420p |
-| **Aspect Ratio** | Force 9:16 with padding, or keep original aspect ratio |
-| **Web Optimized** | Progressive download, capped bitrate, mobile-friendly encoding |
+Built for creators who refuse to let platforms destroy their footage.
+
+---
 
 ## Requirements
 
 - Python 3.9+
-- FFmpeg installed and available in your `PATH`
-  - Install via [ffmpeg.org](https://ffmpeg.org/download.html) or your package manager:
-    - macOS: `brew install ffmpeg`
-    - Ubuntu/Debian: `sudo apt update && sudo apt install ffmpeg`
-    - Windows: download from gyan.dev or use `winget install Gyan.FFmpeg`
+- FFmpeg + ffprobe in PATH (or `C:\ffmpeg\bin`, or bundled next to the app)
 
-## Setup
+Optional:
+- Node.js — only for WhatsApp auto-send bridge (`npm install && node wa-bridge.js`)
+- psutil — reliable pause/resume on Windows (`pip install psutil`)
+
+---
+
+## Install
 
 ```bash
 cd tiktok-jarvis-optimizer
-
-# Create virtual environment (optional but recommended)
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
+venv\Scripts\activate  # or source venv/bin/activate
 pip install -r requirements.txt
+```
 
-# Run the server
+## Run
+
+```bash
 python app.py
 ```
 
-Open your browser to **http://localhost:5000**
+Open **http://localhost:5000**
 
-## How to Use
+---
 
-1. **Upload** your video (drag & drop or click).
-2. **Review** the input analysis panel (resolution, codec, bitrate, duration).
-3. **Configure** output settings:
-   - **Resolution**: 1080p or 720p vertical.
-   - **Framerate**: 30, 60, or up to 120 FPS.
-   - **Aspect Modulator**: TikTok 9:16 (with black padding) or Original aspect ratio.
-   - **Quality / CRF**: 18 is visually lossless. Lower = bigger file, higher quality.
-4. **Click** "INITIATE COMPRESSION".
-5. **Download** the optimized file when complete.
+## Presets
 
-## Why This Works for TikTok
+| Preset | Platform | What it does |
+|--------|----------|--------------|
+| **TikTok Studio** | TikTok | 1080p 60fps CRF 18. Maximum quality. |
+| **Quality First** | TikTok | 1080p 30fps balanced. Smaller file, still crisp. |
+| **4K Lanczos** | TikTok | 1080p 30fps Lanczos scale. Best for 4K sources. |
+| **Max Compatibility** | TikTok | CRF 20 medium. Widest device support. |
+| **KSAEVELO** | TikTok | Metadata timing trick (`-itsscale`). Zero re-encode. TikTok reads it as smooth high-FPS without crushing quality. |
+| **Status 720p** | WhatsApp | 720p VBR 1.5 Mbps. Auto-split >30s. |
+| **Status HD** | WhatsApp | 1080p VBR 2.5 Mbps. Auto-split >30s. |
+| **Chat Send** | WhatsApp | 1080p CRF 18. Single file, no split. |
 
-TikTok re-encodes almost everything uploaded. By matching TikTok's preferred spec ahead of time, you minimize generational quality loss:
-- **H.264 High Profile** — best compatibility with TikTok's ingestion pipeline.
-- **AAC 128 kbps 44.1 kHz** — standard audio spec.
-- **yuv420p + faststart** — web/mobile playback optimized.
-- **Bitrate cap** — prevents bloat while CRF 18 keeps detail crisp.
-- **9:16 padding** — ensures TikTok displays your video full-screen without extra cropping.
+**KSAEVELO**: stream-copies your video with adjusted timing metadata. Local playback looks slower — TikTok reads it correctly and plays smooth.
 
-## Tech Stack
+---
 
-- **Backend**: Python / Flask / FFmpeg CLI
-- **Frontend**: Vanilla JS, CSS3 animations, SVG HUD elements
-- **Design**: Black & white, Orbitron + Share Tech Mono typography, J.A.R.V.I.S. HUD aesthetic
+## Quick Workflow
+
+1. Drop video onto the hex zone.
+2. Toggle **TikTok / WhatsApp** in the header.
+3. Click **Smart Recommend** or pick a preset.
+4. Click **Initiate**. Watch the HUD.
+5. Download. Done.
+
+---
+
+## Hardware Accel
+
+Auto-detected at startup. Green = working. Orange = driver issue. Red = not present. Click any dot for full diagnostic stderr.
+
+---
+
+## Build .exe (Optional)
+
+When everything is finalized:
+
+```bash
+pip install pywebview pyinstaller
+python build.py
+```
+
+Outputs `dist/CHRONOS.exe` — native window, no browser needed.
+
+---
+
+## Stack
+
+Python / Flask / FFmpeg CLI — Vanilla JS / CSS3 — WebView2 / PyInstaller
