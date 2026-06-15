@@ -54,9 +54,7 @@ const el = {
   copyCmdBtn: $('#copy-cmd-btn'),
   pauseBtn: $('#pause-btn'),
   stopBtn: $('#stop-btn'),
-  waSendBtn: $('#wa-send-btn'),
-  waSendStatus: $('#wa-send-status'),
-  waPhone: $('#wa-phone'),
+
   waGroup: $('#wa-group'),
   targetSizeGroup: $('#target-size-group'),
   presetStrip: $('#preset-strip'),
@@ -234,17 +232,46 @@ function applyPlatformUI() {
   const isWA = currentPlatform === 'whatsapp';
   if (el.waGroup) el.waGroup.style.display = isWA ? 'block' : 'none';
   if (el.targetSizeGroup) el.targetSizeGroup.style.display = isWA ? 'none' : 'block';
-  $$('.holo-preset').forEach(b => {
-    const isWaPreset = b.dataset.preset.startsWith('wa_');
-    b.style.display = isWaPreset ? (isWA ? '' : 'none') : (isWA ? 'none' : '');
-  });
-  const visible = $$('.holo-preset').filter(b => b.style.display !== 'none');
-  if (visible.length) {
-    $$('.holo-preset').forEach(b => b.classList.remove('active'));
-    visible[0].classList.add('active');
-    applyPreset(visible[0].dataset.preset);
+
+  const adv = $('#config-advanced');
+  const simple = $('#config-whatsapp-simple');
+  if (adv) adv.style.display = isWA ? 'none' : '';
+  if (simple) simple.style.display = isWA ? 'block' : 'none';
+  if (el.presetStrip) el.presetStrip.style.display = isWA ? 'none' : '';
+
+  const coreLabel = $('#core-label');
+  if (coreLabel) coreLabel.textContent = isWA ? 'WhatsApp HD Optimizer' : 'Processing Core';
+  if (el.processBtn) el.processBtn.textContent = isWA ? 'Compress' : 'Initiate';
+
+  if (isWA) {
+    const mode = getRadioVal('wa_mode') || 'status';
+    if (mode === 'status') applyPreset('wa_status_hd');
+    else applyPreset('wa_chat');
+    updateWaSimpleSpec();
+  } else {
+    $$('.holo-preset').forEach(b => {
+      const isWaPreset = b.dataset.preset.startsWith('wa_');
+      b.style.display = isWaPreset ? 'none' : '';
+    });
+    const visible = $$('.holo-preset').filter(b => b.style.display !== 'none');
+    if (visible.length) {
+      $$('.holo-preset').forEach(b => b.classList.remove('active'));
+      visible[0].classList.add('active');
+      applyPreset(visible[0].dataset.preset);
+    }
   }
   log(`PLATFORM: ${currentPlatform.toUpperCase()}`, 'info');
+}
+
+function updateWaSimpleSpec() {
+  const mode = getRadioVal('wa_mode') || 'status';
+  const spec = $('#wa-simple-spec');
+  if (!spec) return;
+  if (mode === 'status') {
+    spec.textContent = '1080p • H.264 • 30fps • Original • VBR 2.5 Mbps • Auto-split >30s';
+  } else {
+    spec.textContent = '1080p • H.264 • 30fps • Original • CRF 18 • Single file';
+  }
 }
 
 /* ── Hardware Detection ── */
@@ -287,23 +314,6 @@ function initHwStatus() {
         });
       });
     }).catch(() => { if (refs.hwGroup) refs.hwGroup.style.display = 'block'; });
-}
-
-/* ── WhatsApp Bridge Status ── */
-function checkWaBridge() {
-  fetch('/whatsapp/bridge/status')
-    .then(r => r.json())
-    .then(d => {
-      waBridgeReady = d.ready || false;
-      const el = document.getElementById('wa-bridge-dot');
-      if (!el) return;
-      el.className = 'wa-bridge-dot' + (waBridgeReady ? ' online' : '');
-      el.textContent = waBridgeReady ? 'Bridge connected' : 'Bridge offline — run `node wa-bridge.js`';
-    }).catch(() => {
-      waBridgeReady = false;
-      const el = document.getElementById('wa-bridge-dot');
-      if (el) { el.className = 'wa-bridge-dot'; el.textContent = 'Bridge offline'; }
-    });
 }
 
 /* ── Audio UI ── */
@@ -359,17 +369,27 @@ $$('input[name="strategy"]').forEach(r => r.addEventListener('change', () => {
   updateTwoPass(); updateSizeEstimate(); debouncedFetchEstimate();
 }));
 $$('input[name="audio_mode"]').forEach(r => r.addEventListener('change', () => { updateAudioUI(); updateSizeEstimate(); debouncedFetchEstimate(); }));
+$$('input[name="wa_mode"]').forEach(r => r.addEventListener('change', () => {
+  if (currentPlatform === 'whatsapp') {
+    const mode = getRadioVal('wa_mode') || 'status';
+    if (mode === 'status') applyPreset('wa_status_hd');
+    else applyPreset('wa_chat');
+    updateWaSimpleSpec();
+    updateSizeEstimate();
+    debouncedFetchEstimate();
+  }
+}));
 $$('input[name="codec"], input[name="hw_accel"]').forEach(r => r.addEventListener('change', () => { updateTwoPass(); updateSizeEstimate(); debouncedFetchEstimate(); }));
 
 /* ── Presets ── */
 const PRESETS = {
-  tiktok: { res:'1080p', fps:60, aspect:'tiktok', codec:'h264', container:'mp4', strategy:'crf', crf:18, vbr:12000, scale:'bicubic', preset:'slow', hevc_int:false, color:false, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
-  optimal: { res:'1080p', fps:30, aspect:'tiktok', codec:'h264', container:'mp4', strategy:'crf', crf:18, vbr:12000, scale:'bicubic', preset:'medium', hevc_int:false, color:false, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
-  reddit: { res:'1080p', fps:30, aspect:'tiktok', codec:'h264', container:'mp4', strategy:'crf', crf:18, vbr:12000, scale:'lanczos', preset:'slow', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
-  compat: { res:'1080p', fps:30, aspect:'tiktok', codec:'h264', container:'mp4', strategy:'crf', crf:20, vbr:12000, scale:'bicubic', preset:'medium', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
-  wa_status: { res:'720p', fps:30, aspect:'tiktok', codec:'h264', container:'mp4', strategy:'vbr', crf:23, vbr:1500, scale:'bicubic', preset:'medium', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:128, hw_accel:'none', two_pass:false },
-  wa_status_hd: { res:'1080p', fps:30, aspect:'tiktok', codec:'h264', container:'mp4', strategy:'vbr', crf:21, vbr:2500, scale:'bicubic', preset:'medium', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:128, hw_accel:'none', two_pass:false },
-  wa_chat: { res:'1080p', fps:30, aspect:'tiktok', codec:'h264', container:'mp4', strategy:'crf', crf:18, vbr:12000, scale:'bicubic', preset:'slow', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
+  tiktok: { res:'1080p', fps:60, aspect:'original', codec:'h264', container:'mp4', strategy:'crf', crf:18, vbr:12000, scale:'bicubic', preset:'slow', hevc_int:false, color:false, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
+  optimal: { res:'1080p', fps:30, aspect:'original', codec:'h264', container:'mp4', strategy:'crf', crf:18, vbr:12000, scale:'bicubic', preset:'medium', hevc_int:false, color:false, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
+  reddit: { res:'1080p', fps:30, aspect:'original', codec:'h264', container:'mp4', strategy:'crf', crf:18, vbr:12000, scale:'lanczos', preset:'slow', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
+  compat: { res:'1080p', fps:30, aspect:'original', codec:'h264', container:'mp4', strategy:'crf', crf:20, vbr:12000, scale:'bicubic', preset:'medium', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
+  wa_status: { res:'720p', fps:30, aspect:'original', codec:'h264', container:'mp4', strategy:'vbr', crf:23, vbr:1500, scale:'bicubic', preset:'medium', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:128, hw_accel:'none', two_pass:false },
+  wa_status_hd: { res:'1080p', fps:30, aspect:'original', codec:'h264', container:'mp4', strategy:'vbr', crf:21, vbr:2500, scale:'bicubic', preset:'medium', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:128, hw_accel:'none', two_pass:false },
+  wa_chat: { res:'1080p', fps:30, aspect:'original', codec:'h264', container:'mp4', strategy:'crf', crf:18, vbr:12000, scale:'bicubic', preset:'slow', hevc_int:false, color:true, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
   ksaevelo: { res:'1080p', fps:60, aspect:'original', codec:'h264', container:'mp4', strategy:'crf', crf:18, vbr:12000, scale:'bicubic', preset:'slow', hevc_int:false, color:false, audio_mode:'lossy', audio_bitrate:192, hw_accel:'none', two_pass:false },
 };
 
@@ -653,7 +673,11 @@ function processQueue() {
 }
 function startSingleJob(id) {
   const payload = buildPayload();
-  log(`Encode: ${payload.resolution} @ ${payload.fps}FPS | ${payload.codec.toUpperCase()} | ${payload.platform.toUpperCase()}`, 'info');
+  if (currentPlatform === 'whatsapp') {
+    log(`Compress: WhatsApp ${payload.wa_mode.toUpperCase()} | HD Optimized`, 'info');
+  } else {
+    log(`Encode: ${payload.resolution} @ ${payload.fps}FPS | ${payload.codec.toUpperCase()} | ${payload.platform.toUpperCase()}`, 'info');
+  }
   if (el.uploadView) el.uploadView.classList.remove('active');
   if (el.processView) el.processView.classList.add('active');
   if (el.completeView) el.completeView.classList.remove('active');
@@ -662,7 +686,7 @@ function startSingleJob(id) {
   if (el.timeEstBlock) el.timeEstBlock.style.display = 'none';
   setRing(0);
   if (el.pauseBtn) { el.pauseBtn.textContent = 'Pause'; el.pauseBtn.style.display = 'inline-flex'; }
-  if (el.statusLabel) el.statusLabel.textContent = 'Encoding';
+  if (el.statusLabel) el.statusLabel.textContent = currentPlatform === 'whatsapp' ? 'Compressing' : 'Encoding';
   if (el.timerElapsed) el.timerElapsed.textContent = '00:00';
   if (el.timerEst) el.timerEst.textContent = currentEstimate && currentEstimate.estimate ? '~' + currentEstimate.estimate.label : '—';
   startClientTimer();
@@ -726,7 +750,7 @@ function startPolling(id) {
   pollTimer = setInterval(() => {
     fetch(`/status/${id}`).then(r => r.json()).then(d => {
       if (d.status === 'paused') { if (el.pauseBtn) el.pauseBtn.textContent = 'Resume'; if (el.statusLabel) el.statusLabel.textContent = 'Paused'; return; }
-      if (d.status === 'processing') { if (el.pauseBtn) el.pauseBtn.textContent = 'Pause'; if (el.statusLabel) el.statusLabel.textContent = batchMode ? `Batch [${activeQueueIdx+1}/${jobQueue.length}]` : 'Encoding'; }
+      if (d.status === 'processing') { if (el.pauseBtn) el.pauseBtn.textContent = 'Pause'; if (el.statusLabel) el.statusLabel.textContent = batchMode ? `Batch [${activeQueueIdx+1}/${jobQueue.length}]` : (currentPlatform === 'whatsapp' ? 'Compressing' : 'Encoding'); }
       if (d.progress != null) setRing(d.progress);
       if (d.log && d.log.length) {
         d.log.slice(-5).forEach(l => { if (!l) return; const last = el.terminal.lastElementChild; if (last && last.textContent === '> ' + l) return; log(l, l.toLowerCase().includes('error') ? 'error' : 'info'); });
@@ -763,7 +787,6 @@ function finalize(id, outSize, outSummary, ffmpegCmd, isStopped, outputFiles) {
     const deleteBtn = $('#delete-btn'); if (deleteBtn) deleteBtn.style.display = 'inline-flex';
     const resetBtn = $('#reset-btn'); if (resetBtn) resetBtn.style.display = 'inline-flex';
     if (el.downloadLink) el.downloadLink.style.display = 'none';
-    if (el.waSendBtn) el.waSendBtn.style.display = 'none';
     if (el.segStrip) el.segStrip.style.display = 'none';
     if (el.comparisonPanel) el.comparisonPanel.style.display = 'none';
     if (el.ffmpegCmd) el.ffmpegCmd.textContent = ffmpegCmd || '';
@@ -809,8 +832,6 @@ function finalize(id, outSize, outSummary, ffmpegCmd, isStopped, outputFiles) {
     el.downloadLink.setAttribute('download', stem + '_CHRONOS_' + getRadioVal('res') + ext);
     el.downloadLink.style.display = 'inline-flex';
   }
-  if (currentPlatform === 'whatsapp') { if (el.waSendBtn) el.waSendBtn.style.display = 'inline-flex'; if (el.waSendStatus) el.waSendStatus.textContent = ''; }
-  else { if (el.waSendBtn) el.waSendBtn.style.display = 'none'; }
   if (outputFiles && outputFiles.length > 1) {
     if (el.segStrip) {
       el.segStrip.style.display = 'flex';
@@ -839,20 +860,6 @@ function finishBatch() {
   if (el.downloadLink) el.downloadLink.style.display = 'none';
   if (el.ffmpegCmd) el.ffmpegCmd.textContent = '';
   log('Batch complete', 'info');
-}
-
-/* ── WhatsApp Send ── */
-if (el.waSendBtn) {
-el.waSendBtn.addEventListener('click', () => {
-  if (!currentJobId) return; const phone = el.waPhone.value.trim(); if (!phone) { log('Enter phone number', 'error'); return; }
-  log('Sending to WhatsApp...', 'info');
-  fetch('/whatsapp/send', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ job_id: currentJobId, phone }) })
-    .then(r => r.json()).then(d => {
-      if (d.sent) { if (el.waSendStatus) { el.waSendStatus.textContent = 'Sent via bridge'; el.waSendStatus.style.color = 'var(--success)'; } log('Sent', 'info'); }
-      else if (d.link) { if (el.waSendStatus) el.waSendStatus.innerHTML = `<a href="${d.link}" target="_blank" style="color:var(--warn)">Open WhatsApp manually</a>`; log('Bridge offline, fallback link', 'info'); }
-      else { if (el.waSendStatus) { el.waSendStatus.textContent = d.error || 'Failed'; el.waSendStatus.style.color = 'var(--danger)'; } log('Send failed: ' + (d.error || 'Unknown'), 'error'); }
-    }).catch(err => { if (el.waSendStatus) el.waSendStatus.textContent = 'Failed'; log('Send error: ' + err.message, 'error'); });
-});
 }
 
 /* ── Retry / Delete / Reset ── */
@@ -901,7 +908,6 @@ function resetAll() {
   if (el.ffmpegCmd) el.ffmpegCmd.textContent = '';
   if (el.segStrip) el.segStrip.style.display = 'none';
   if (el.comparisonPanel) el.comparisonPanel.style.display = 'none';
-  if (el.waSendBtn) el.waSendBtn.style.display = 'none';
   if (el.pauseBtn) { el.pauseBtn.textContent = 'Pause'; el.pauseBtn.style.display = 'inline-flex'; }
   if (el.processBtn) el.processBtn.disabled = true;
   if (el.smartBtn) el.smartBtn.disabled = true;
@@ -927,7 +933,5 @@ el.termToggle.addEventListener('click', () => {
 initPlatformToggle();
 applyPlatformUI();
 initHwStatus();
-checkWaBridge();
-setInterval(checkWaBridge, 10000);
 updateAudioUI(); updateTwoPass();
 log('CHRONOS online. Awaiting stream.', 'info');

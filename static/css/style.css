@@ -788,6 +788,13 @@ html, body {
   color: var(--text-faint); text-align: center; text-transform: uppercase;
 }
 
+/* WhatsApp Simple Mode */
+.wa-simple-spec {
+  font-family: var(--font-data); font-size: 0.6rem; color: var(--accent); letter-spacing: 1px;
+  text-transform: uppercase; margin-top: 6px; padding: 6px 10px; background: rgba(0,240,255,0.03);
+  border: 1px solid rgba(0,240,255,0.08); border-radius: 3px; display: inline-block;
+}
+
 /* Animations */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .fade-in { animation: fadeUp 0.5s ease both; }

@@ -12,6 +12,7 @@ Features:
 """
 
 import os
+import sys
 import re
 import json
 import uuid
@@ -21,7 +22,6 @@ import threading
 import time
 import signal
 import math
-import sys
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, send_file
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -552,7 +552,7 @@ def smart_recommend(summary: dict, platform: str = "tiktok") -> dict:
     if platform == "whatsapp":
         # Pure Status HD philosophy: pre-compress to WhatsApp's ingestion limit
         # so WA's downstream encoder has nothing to brutalize.
-        rec["aspect_mode"] = "tiktok"
+        rec["aspect_mode"] = "original"
         rec["container"] = "mp4"
         rec["codec"] = "h264"
         rec["color_tags"] = True
@@ -649,12 +649,8 @@ def smart_recommend(summary: dict, platform: str = "tiktok") -> dict:
         rec["codec"] = "h264"
         rec["reasons"].append(f"Source codec '{codec}' non-standard. Transcoding to H.264 High Profile.")
 
-    if h > w:
-        rec["aspect_mode"] = "tiktok"
-        rec["reasons"].append("Vertical video detected. 9:16 padding for full-screen TikTok display.")
-    else:
-        rec["aspect_mode"] = "original"
-        rec["reasons"].append("Landscape/square source. Original aspect ratio preserved to prevent cropping.")
+    rec["aspect_mode"] = "original"
+    rec["reasons"].append("Original framing preserved. No cropping, no padding, no letterboxing.")
 
     rec["audio_mode"] = "lossy"
     rec["audio_bitrate"] = 192
@@ -1466,58 +1462,6 @@ def download(job_id):
         mimetype="video/mp4",
     )
 
-
-# ── WhatsApp Integration ──
-
-@app.route("/whatsapp/bridge/status")
-def wa_bridge_status():
-    try:
-        import urllib.request
-        req = urllib.request.Request("http://localhost:3000/status", method="GET")
-        with urllib.request.urlopen(req, timeout=2) as resp:
-            return jsonify(json.loads(resp.read()))
-    except Exception:
-        return jsonify({"ready": False, "qr": None})
-
-
-@app.route("/whatsapp/send", methods=["POST"])
-def whatsapp_send():
-    data = request.get_json(force=True)
-    job_id = data.get("job_id")
-    phone = data.get("phone", "").strip()
-    if not phone:
-        return jsonify({"error": "Phone number required"}), 400
-    job = jobs.get(job_id)
-    if not job or job.get("status") != "completed":
-        return jsonify({"error": "Job not ready"}), 400
-
-    # Try local bridge first
-    try:
-        import urllib.request
-        req = urllib.request.Request("http://localhost:3000/status", method="GET")
-        with urllib.request.urlopen(req, timeout=3) as resp:
-            bridge = json.loads(resp.read())
-        if bridge.get("ready"):
-            files = job.get("output_files", [])
-            if not files and job.get("output_path"):
-                files = [job["output_path"]]
-            for f in files:
-                payload = json.dumps({"to": phone, "file": f}).encode()
-                req2 = urllib.request.Request(
-                    "http://localhost:3000/send",
-                    data=payload,
-                    headers={"Content-Type": "application/json"},
-                    method="POST"
-                )
-                urllib.request.urlopen(req2, timeout=30)
-            return jsonify({"sent": True, "via": "bridge"})
-    except Exception as e:
-        print(f"[CHRONOS] WhatsApp bridge not available: {e}")
-
-    # Fallback: wa.me link
-    text = "Compressed+video+from+CHRONOS"
-    link = f"https://wa.me/{phone}?text={text}"
-    return jsonify({"sent": False, "link": link, "reason": "bridge_not_ready"})
 
 
 @app.errorhandler(RequestEntityTooLarge)

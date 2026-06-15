@@ -252,9 +252,7 @@
 
         <div class="action-row">
           <a href="#" id="download-link" class="holo-btn primary">Download</a>
-          <button class="holo-btn secondary" id="wa-send-btn" style="display:none">Send to WhatsApp</button>
         </div>
-        <div id="wa-send-status" class="wa-status"></div>
 
         <div class="action-row secondary">
           <button class="holo-btn tertiary" id="retry-btn">Retry</button>
@@ -284,25 +282,29 @@
       </div>
 
       <div class="config-scroll">
-        <button class="holo-btn smart" id="smart-btn" disabled>Smart Recommend</button>
-        <div id="smart-banner" class="smart-banner" style="display:none">
-          <div class="smart-title" id="smart-title">Auto</div>
-          <div class="smart-reasons" id="smart-reasons"></div>
-        </div>
-
-        <!-- WhatsApp Phone -->
+        <!-- WhatsApp Mode -->
         <div class="config-group" id="wa-group" style="display:none">
-          <div class="group-label">Destination</div>
-          <div class="holo-input-wrap">
-            <input type="text" id="wa-phone" class="holo-input" placeholder="+1 234 567 8900" data-desc="WhatsApp number with country code for auto-send. Bridge must be running (node wa-bridge.js).">
-            <div class="input-glow"></div>
-          </div>
-          <div class="group-sublabel">WhatsApp number with country code</div>
-          <div class="wa-bridge-dot" id="wa-bridge-dot">Bridge offline</div>
+          <div class="group-label">Mode</div>
           <div class="segmented mini">
             <input type="radio" name="wa_mode" id="wa-mode-status" value="status" checked><label for="wa-mode-status" data-desc="Auto-splits into 30-second segments for WhatsApp Status. Each segment is individually optimized.">Status</label>
             <input type="radio" name="wa_mode" id="wa-mode-chat" value="chat"><label for="wa-mode-chat" data-desc="Single optimized file for direct WhatsApp chat message. No splitting.">Chat</label>
           </div>
+        </div>
+
+        <!-- WhatsApp Simple Mode -->
+        <div id="config-whatsapp-simple" style="display:none">
+          <div class="config-group">
+            <div class="group-label">HD Optimized</div>
+            <div class="wa-simple-spec" id="wa-simple-spec">1080p • H.264 • 30fps • Original • AAC</div>
+          </div>
+        </div>
+
+        <!-- Advanced Controls (TikTok) -->
+        <div id="config-advanced">
+        <button class="holo-btn smart" id="smart-btn" disabled>Smart Recommend</button>
+        <div id="smart-banner" class="smart-banner" style="display:none">
+          <div class="smart-title" id="smart-title">Auto</div>
+          <div class="smart-reasons" id="smart-reasons"></div>
         </div>
 
         <!-- Resolution -->
@@ -332,8 +334,8 @@
         <div class="config-group">
           <div class="group-label">Aspect</div>
           <div class="segmented">
-            <input type="radio" name="aspect" id="asp-tiktok" value="tiktok" checked><label for="asp-tiktok" data-desc="Vertical 9:16. Fills the entire mobile screen. Best for TikTok and WhatsApp Status.">9:16</label>
-            <input type="radio" name="aspect" id="asp-orig" value="original"><label for="asp-orig" data-desc="Preserve original framing. No cropping, no padding, no letterboxing.">Original</label>
+<input type="radio" name="aspect" id="asp-tiktok" value="tiktok"><label for="asp-tiktok" data-desc="Vertical 9:16. Fills the entire mobile screen. Best for TikTok.">9:16</label>
+<input type="radio" name="aspect" id="asp-orig" value="original" checked><label for="asp-orig" data-desc="Preserve original framing. No cropping, no padding, no letterboxing.">Original</label>
           </div>
         </div>
 
@@ -483,6 +485,8 @@
             <div class="est-label">Projected encode time</div>
           </div>
           <div class="alt-list" id="faster-alts"></div>
+        </div>
+
         </div>
 
         <button class="holo-btn primary" id="process-btn" disabled>Initiate</button>

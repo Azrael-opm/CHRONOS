@@ -2,7 +2,7 @@
 
 > *Compress. Optimize. Upload. Zero compromise.*
 
-Holographic HUD video compressor for **TikTok** and **WhatsApp**. H.264/H.265/VP9/AV1. CRF, VBR, two-pass, hardware accel auto-detect. Smart Recommend. Batch queue. WhatsApp Status auto-split. WhatsApp Web bridge optional.
+Holographic HUD video compressor for **TikTok** and **WhatsApp**. H.264/H.265/VP9/AV1. CRF, VBR, two-pass, hardware accel auto-detect. Smart Recommend. Batch queue. WhatsApp Status auto-split.
 
 Built for creators who refuse to let platforms destroy their footage.
 
@@ -14,7 +14,6 @@ Built for creators who refuse to let platforms destroy their footage.
 - FFmpeg + ffprobe in PATH (or `C:\ffmpeg\bin`, or bundled next to the app)
 
 Optional:
-- Node.js — only for WhatsApp auto-send bridge (`npm install && node wa-bridge.js`)
 - psutil — reliable pause/resume on Windows (`pip install psutil`)
 
 ---
